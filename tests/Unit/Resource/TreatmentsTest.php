@@ -117,13 +117,14 @@ final class TreatmentsTest extends TestCase
             'card' => [
                 'type' => 'visa',
                 'exp' => '12/29',
+                'last_4' => '4242',
             ],
         ];
         $this->resource->sync('17de25ac-ba67-4f6e-8067-d752e800ae47', ['28618'], $ua, payment: $payment);
 
         self::assertJsonStringEqualsJsonString(
             '{"session_id":"17de25ac-ba67-4f6e-8067-d752e800ae47","order_ids":["28618"],"payment":'
-                . '{"type":"credit_card","pre_auth":false,"card":{"type":"visa","exp":"12/29"}}}',
+                . '{"type":"credit_card","pre_auth":false,"card":{"type":"visa","exp":"12/29","last_4":"4242"}}}',
             (string) $this->http->lastRequest()->getBody(),
         );
     }

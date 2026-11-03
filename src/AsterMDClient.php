@@ -262,6 +262,20 @@ final class AsterMDClient
     }
 
     /**
+     * Returns the Coupons resource for checking a coupon code against a cart.
+     *
+     * Use it at checkout, before the payment is created, to learn whether the
+     * shopper's code applies to the cart and what it takes off. A check never
+     * redeems the coupon.
+     *
+     * @return \AsterMD\Sdk\Resource\Coupons
+     */
+    public function coupons(): \AsterMD\Sdk\Resource\Coupons
+    {
+        return new \AsterMD\Sdk\Resource\Coupons($this->transport);
+    }
+
+    /**
      * Returns the Teleforms resource for reading questionnaire and intake form definitions.
      *
      * Teleform definitions describe the fields, validation rules, and display order

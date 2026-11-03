@@ -73,6 +73,7 @@ src/
 │   ├── Sessions.php          /v1/sales/sessions/*
 │   ├── IntakeSubmissions.php /v1/sales/intake-submissions/*
 │   ├── Carts.php             /v1/sales/carts/*
+│   ├── Coupons.php           /v1/sales/coupons/*
 │   ├── CheckoutEvents.php    /v1/sales/checkout-events/*
 │   ├── Teleforms.php         /v1/sales/teleforms/*
 │   ├── Patients.php          /v1/sales/patients/*
