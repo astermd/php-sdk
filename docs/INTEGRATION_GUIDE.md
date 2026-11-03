@@ -32,8 +32,8 @@ The SDK is a thin, typed wrapper around the AsterMD public REST API.
 ```
 your app
   └── AsterMDClient
-        ├── ->sessions()         ->intakeSubmissions()    ->carts()           ->teleforms()
-        ├── ->patients()         ->opportunities()   ->treatments()
+        ├── ->sessions()         ->intakeSubmissions()    ->carts()           ->coupons()
+        ├── ->patients()         ->opportunities()   ->treatments()    ->teleforms()
         ├── ->doctorsNetworks()  ->channels()
         └── catalog: ->products() / ->categories() / ->labTests()
                      ->medications() / ->shippings()
@@ -494,6 +494,14 @@ Uploaded bytes are **PHI**. The SDK never writes them to a debug log, even with
 | `update(string $session, array $items): Response`            | PUT  | `/v1/sales/carts/update/{session}`    |
 
 `items` is a list of items. Each item: `product_id` (string), `name` (string), `qty` (int) — all required. The journey event and `channel_id` are derived server-side, so the SDK does not send them.
+
+### `coupons()`
+
+| Method                                                                                                                       | HTTP | Path                       |
+| ---------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------- |
+| `validate(string $code, array $items, ?string $patientId = null, ?string $email = null, ?string $opportunityId = null): Response` | POST | `/v1/sales/coupons/validate` |
+
+Checks a coupon code against a cart before the payment is created; nothing is redeemed. `items` is the cart (1–6 lines): each line is a `plan_id`, or a `product_id` with `variant_id`, plus a `quantity` — never an amount. Name the shopper with one of `patientId`, `email` or `opportunityId`. `data()` carries the coupon terms, `gross_amount_cents`, `discount_cents`, `amount_cents`, `currency` and the discounted `items`. An unknown code throws `NotFoundException`; any other refusal throws `ValidationException`.
 
 ### `teleforms()`
 

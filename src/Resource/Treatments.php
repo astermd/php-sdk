@@ -115,7 +115,8 @@ final class Treatments extends AbstractResource
      *
      * `$payment`, when supplied, carries the settled payment method for the order.
      * `card`, when present, additionally requires `type` (one of `amex`, `visa`,
-     * `mastercard`, `discover`, `diners_club`, `jcb`) and `exp`, with `bin` optional.
+     * `mastercard`, `discover`, `diners_club`, `jcb`) and `exp`, with `last_4` (the card's
+     * last four digits) optional.
      *
      * `$verification`, when supplied, records identity/contact verification already
      * performed by the caller. `id`, when present, additionally requires `verified`

@@ -69,7 +69,7 @@ manager — never commit it.
 
 ## Resources
 
-`sessions`, `intakeSubmissions`, `carts`, `checkoutEvents`, `teleforms`,
+`sessions`, `intakeSubmissions`, `carts`, `coupons`, `checkoutEvents`, `teleforms`,
 `patients`, `opportunities`, `treatments`, `doctorsNetworks`, `channels`,
 `products`, `categories`, `labTests`, `medications`, `shippings`,
 `verification`, `geo`.
