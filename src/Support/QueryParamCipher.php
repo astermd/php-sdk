@@ -20,7 +20,7 @@ use RuntimeException;
  * The AES key is **never** stored in this SDK. Supply it at every call site from
  * your own configuration (environment variable, secrets manager, etc.), and keep
  * it in sync with whichever service produces the tokens. Contact
- * info@astermd.com to obtain or rotate the key for your organisation.
+ * hello@astermd.com to obtain or rotate the key for your organisation.
  *
  * Usage:
  * ```php
