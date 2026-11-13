@@ -211,6 +211,5 @@ this repository only and does not grant rights to use the AsterMD brand.
 
 ## About AsterMD
 
-AsterMD helps healthcare brands launch and grow telehealth services with intake builders, patient
-portals and your choice of providers, with no vendor lock-in.
+AsterMD is a telehealth platform that helps healthcare brands launch and grow virtual care services. It includes intake builders, patient portals and your choice of providers and pharmacy, with no vendor lock-in.
 [astermd.com](https://www.astermd.com/) · hello@astermd.com
