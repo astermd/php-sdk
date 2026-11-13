@@ -1,6 +1,10 @@
+<p align="center">
+  <a href="https://www.astermd.com/"><img src="https://raw.githubusercontent.com/astermd/php-sdk/main/.github/assets/astermd-logo.svg" alt="AsterMD" height="48"></a>
+</p>
+
 # AsterMD PHP SDK
 
-Slim, framework-agnostic PHP SDK for the AsterMD order-flow API.
+Slim, framework-agnostic PHP SDK for the [AsterMD](https://www.astermd.com/) telehealth API: sessions, intake forms and orders. AsterMD is a white-label, API-first telehealth platform.
 
 - PHP `>=8.4` (8.5 recommended)
 - Zero runtime dependencies beyond the `psr/http-*` interfaces + `nyholm/psr7`
@@ -175,10 +179,10 @@ order is identical: `php-cs-fixer --dry-run` → `phpstan analyse` → `phpunit`
 
 ## Compliance
 
-This SDK is a client for an API that carries personal and protected health
-information. Using it does not by itself make your application HIPAA compliant —
-that depends on your own infrastructure, policies, and agreements. Contact
-info@astermd.com regarding a Business Associate Agreement.
+AsterMD follows HIPAA guidelines. This SDK is a client for an API that carries personal and
+protected health information, and using it does not by itself make your application HIPAA
+compliant — that depends on your own infrastructure, policies, and agreements. Contact
+hello@astermd.com regarding a Business Associate Agreement.
 
 See [`SECURITY.md`](SECURITY.md) for vulnerability reporting and credential-handling
 guidance.
@@ -194,8 +198,19 @@ guidance.
 
 ## Support
 
-Questions, access requests, and licensing enquiries: **info@astermd.com**
+Questions, access requests, and licensing enquiries: **hello@astermd.com**
 
 ## License
 
 [MIT](LICENSE) © 2026 AsterMD
+
+## Trademarks
+
+The AsterMD name and logo are proprietary to AsterMD. The MIT license covers the source code in
+this repository only and does not grant rights to use the AsterMD brand.
+
+## About AsterMD
+
+AsterMD helps healthcare brands launch and grow telehealth services with intake builders, patient
+portals and your choice of providers, with no vendor lock-in.
+[astermd.com](https://www.astermd.com/) · hello@astermd.com

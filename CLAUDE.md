@@ -142,7 +142,7 @@ infrastructure, tooling, or roadmap:
   dashboard** instead.
 - No "pending", "not yet implemented", or "coming soon" notes. If a capability
   is not shipped, the public docs are silent about it.
-- All support, security, and licensing enquiries go to **info@astermd.com**.
+- All support, security, and licensing enquiries go to **hello@astermd.com**.
 
 ## 8. Workflow expectations
 

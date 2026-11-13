@@ -1,6 +1,7 @@
 {
     "name": "astermd/sdk",
-    "description": "Official PHP SDK for the AsterMD order-flow API.",
+    "description": "Official PHP SDK for the AsterMD telehealth API: sessions, intake forms and orders.",
+    "homepage": "https://www.astermd.com/",
     "type": "library",
     "keywords": [
         "astermd",
@@ -15,11 +16,13 @@
     "authors": [
         {
             "name": "AsterMD",
-            "email": "info@astermd.com"
+            "email": "hello@astermd.com"
         }
     ],
     "support": {
-        "email": "info@astermd.com"
+        "email": "hello@astermd.com",
+        "issues": "https://github.com/astermd/php-sdk/issues",
+        "source": "https://github.com/astermd/php-sdk"
     },
     "require": {
         "php": ">=8.4",
