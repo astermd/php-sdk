@@ -40,6 +40,21 @@ final class OpportunitiesTest extends TestCase
         self::assertSame('https://api.astermd.com/v1/sales/opportunities/create', (string) $req->getUri());
     }
 
+    public function testCreateForwardsAttributionAffiliateLinkId(): void
+    {
+        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{"id":"o1"},"meta":{}}');
+        $this->resource->create([
+            'first_name' => 'Jane',
+            'email' => 'a@b.c',
+            'attribution' => ['affiliate_link_id' => 'encrypted-token'],
+        ]);
+
+        self::assertJsonStringEqualsJsonString(
+            '{"first_name":"Jane","email":"a@b.c","attribution":{"affiliate_link_id":"encrypted-token"}}',
+            (string) $this->http->lastRequest()->getBody(),
+        );
+    }
+
     public function testView(): void
     {
         $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
