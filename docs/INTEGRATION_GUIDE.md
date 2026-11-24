@@ -131,6 +131,15 @@ $session = $client->sessions()->create(
 
 // Optional payload — send any additional creation hints the server accepts.
 // $session = $client->sessions()->create(['test' => true], $_SERVER['HTTP_USER_AGENT'] ?? null, $_SERVER['REMOTE_ADDR'] ?? null)->data()['session'];
+
+// Visitor arrived on an affiliate link? Pass the raw `_amd` query value (or the
+// plain affiliate link ID) as `affiliate_link_id`. The server resolves the link
+// and its affiliate; a value it cannot read is dropped, never an error.
+// $session = $client->sessions()->create([
+//     'utm'               => ['source' => 'fb'],
+//     'custom_params'     => ['c1' => '123'],
+//     'affiliate_link_id' => $_GET['_amd'] ?? null,
+// ])->data()['session'];
 ```
 
 ### Step 2 — Pre-qualifying (identity check, basic questions)
@@ -245,6 +254,7 @@ $opportunity = $client->opportunities()->create([
     'first_name' => 'Jane',
     'email'      => 'jane@example.com',
     'sessions'   => [$session],       // already supported per spec
+    // 'attribution' => ['affiliate_link_id' => $_GET['_amd'] ?? null], // optional, same semantics as on the session
     // … other opportunity fields
 ])->data();
 

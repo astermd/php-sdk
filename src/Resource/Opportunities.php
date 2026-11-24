@@ -41,7 +41,14 @@ final class Opportunities extends AbstractResource
      *                                   `source` (string, optional),
      *                                   `opportunity_status` (string enum: new|contacted|qualified|unqualified|converted|archived, default new),
      *                                   `marketing_consent` (bool, default false),
-     *                                   `communication_consent` (bool, default false)
+     *                                   `communication_consent` (bool, default false),
+     *                                   `attribution` (array, optional — marketing attribution for the lead,
+     *                                   e.g. `utm_source`, `utm_medium`, `utm_campaign`, `c1`…`c5`; includes
+     *                                   `affiliate_link_id` (string — the plain affiliate link ID or the encrypted
+     *                                   token from the link's `_amd` query parameter, with or without the `_amd=`
+     *                                   prefix). The server resolves the link, sets `attribution.affiliate_id` to
+     *                                   the link's owning affiliate, and silently drops a link value it cannot read
+     *                                   rather than rejecting the request)
      *
      * @return Response the created opportunity envelope; `data()` contains the new record including its ID
      *
@@ -83,7 +90,8 @@ final class Opportunities extends AbstractResource
      * sessions to an opportunity.
      *
      * @param string               $id   the ID of the opportunity to update
-     * @param array<string, mixed> $data fields to update; accepts the same keys as `create()` (partial update)
+     * @param array<string, mixed> $data fields to update; accepts the same keys as `create()` (partial update),
+     *                                   including `attribution.affiliate_link_id`
      *
      * @return Response the updated opportunity envelope
      *

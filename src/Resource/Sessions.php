@@ -37,7 +37,12 @@ final class Sessions extends AbstractResource
      * `verification` (array, optional — identity/contact verification already
      * performed by the caller; every field inside it is optional too. Shape:
      * `email` (bool), `address` (bool), `id` (array, optional — `verified` (bool),
-     * `method` (`ssn`|`dob`|`cross_check`|`document_upload`), `value` (string)).
+     * `method` (`ssn`|`dob`|`cross_check`|`document_upload`), `value` (string)),
+     * and `affiliate_link_id` (string, optional — the affiliate link that brought
+     * the visitor: either the plain affiliate link ID or the encrypted token from
+     * the link's `_amd` query parameter, with or without the `_amd=` prefix; the
+     * server resolves it to the link and its owning affiliate, and silently drops
+     * a value it cannot read rather than rejecting the request).
      * The server also enriches the stored record with `ip`, `geo`, and browser/device
      * fields derived from the request; the response `data()` returns that enriched
      * read-model. Any additional keys you pass are forwarded unmodified.
@@ -87,7 +92,9 @@ final class Sessions extends AbstractResource
      * The server route is `GET /sessions/view?session_ids=uuid1,uuid2` — not the
      * REST-style `/sessions/view/{id}` implied by the spec. Pass an array of UUIDs
      * to batch-fetch sessions. The response `data()` is keyed by session UUID; each
-     * entry carries an aggregated `data` read-model and an `events` timeline.
+     * entry carries an aggregated `data` read-model and an `events` timeline. The
+     * read-model includes `affiliate_link_id` and `affiliate_id` (each a string, or
+     * `null` when the session was not created from an affiliate link).
      *
      * Pass `$tz` (an IANA timezone, e.g. `Asia/Kolkata`) to have the server format
      * all timestamps in that zone; when omitted, timestamps are returned in UTC.
@@ -121,7 +128,8 @@ final class Sessions extends AbstractResource
      * client-side, or verification results captured later in the flow). Pass only
      * the fields you want to change; the server performs a merge rather than a full
      * replacement. `$data` accepts the same optional `verification` key documented
-     * on {@see self::create()}.
+     * on {@see self::create()}. `affiliate_link_id` is recorded only at creation;
+     * the server ignores it on update.
      *
      * @param string               $session the UUID of the session to update
      * @param array<string, mixed> $data    fields to update on the session record; empty array sends `{}`.

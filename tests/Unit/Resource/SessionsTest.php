@@ -130,6 +130,22 @@ final class SessionsTest extends TestCase
         );
     }
 
+    public function testCreateForwardsAffiliateLinkIdWhenProvided(): void
+    {
+        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{"session":"uuid"},"meta":{}}');
+
+        $this->sessions->create([
+            'utm' => ['source' => 'fb'],
+            'custom_params' => ['c1' => '123'],
+            'affiliate_link_id' => '0123456789abcdef01234567',
+        ]);
+
+        self::assertJsonStringEqualsJsonString(
+            '{"utm":{"source":"fb"},"custom_params":{"c1":"123"},"affiliate_link_id":"0123456789abcdef01234567"}',
+            (string) $this->http->lastRequest()->getBody(),
+        );
+    }
+
     public function testViewSingleSessionUsesQueryString(): void
     {
         $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
