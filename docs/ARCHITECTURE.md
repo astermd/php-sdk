@@ -13,7 +13,8 @@ For end-user usage see `docs/INTEGRATION_GUIDE.md`. For agent/contributor conven
 ┌─────────────────────────────▼────────────────────────────────────────┐
 │  AsterMDClient                 ← entry point, holds collaborators     │
 │   • config()                                                          │
-│   • sessions()  intakeSubmissions()  teleforms()  patients()               │
+│   • sessions()  sessionEvents()  intakeSubmissions()  teleforms()     │
+│   • carts()  coupons()  checkoutEvents()  patients()                  │
 │   • opportunities()  treatments()  doctorsNetworks()  channels()      │
 │   • products() categories() labTests() medications() shippings()      │
 │   • verification()  geo()                                             │
@@ -71,6 +72,7 @@ src/
 ├── Resource/
 │   ├── AbstractResource.php  base; only knows about Transport
 │   ├── Sessions.php          /v1/sales/sessions/*
+│   ├── SessionEvents.php     /v1/sales/session-events/*
 │   ├── IntakeSubmissions.php /v1/sales/intake-submissions/*
 │   ├── Carts.php             /v1/sales/carts/*
 │   ├── Coupons.php           /v1/sales/coupons/*
@@ -94,7 +96,8 @@ src/
 │   └── QueryParamCipher.php  AES-128-CBC codec for encrypted URL params (caller supplies the key)
 ├── Enum/
 │   ├── Event.php             pre_qualifying_* / intake_* events
-│   ├── CheckoutEvent.php     checkout_visited / upsell_* / order_* events
+│   ├── CheckoutEvent.php     checkout_visited / added_*_info / upsell_* / order_* events
+│   ├── PageType.php          home / product / cart / … page kinds for page views
 │   └── IdentityCheck.php     crosscheck / dob_verify / ssn_verify
 └── Exception/
     ├── AsterMDException.php      abstract base

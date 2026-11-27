@@ -132,4 +132,39 @@ final class CheckoutEventsTest extends TestCase
             (string) $this->http->lastRequest()->getBody(),
         );
     }
+
+    public function testUpdateRecordsShippingAndPaymentDetailEvents(): void
+    {
+        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
+        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
+
+        $this->resource->update('sess-uuid', CheckoutEvent::AddedShippingInfo);
+
+        $req = $this->http->lastRequest();
+        self::assertSame('PUT', $req->getMethod());
+        self::assertSame(
+            'https://api.astermd.com/v1/sales/checkout-events/update/sess-uuid',
+            (string) $req->getUri(),
+        );
+        self::assertJsonStringEqualsJsonString('{"event":"added_shipping_info"}', (string) $req->getBody());
+
+        $this->resource->update('sess-uuid', CheckoutEvent::AddedPaymentInfo, ['payment_method' => 'card']);
+
+        self::assertJsonStringEqualsJsonString(
+            '{"event":"added_payment_info","payment_method":"card"}',
+            (string) $this->http->lastRequest()->getBody(),
+        );
+    }
+
+    public function testCreateForwardsProductId(): void
+    {
+        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
+
+        $this->resource->create('sess-uuid', ['product_id' => '64b2f0c7e3a1d2b3c4e5f6b1']);
+
+        self::assertJsonStringEqualsJsonString(
+            '{"session":"sess-uuid","event":"checkout_visited","product_id":"64b2f0c7e3a1d2b3c4e5f6b1","currency":"USD"}',
+            (string) $this->http->lastRequest()->getBody(),
+        );
+    }
 }

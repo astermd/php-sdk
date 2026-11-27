@@ -17,5 +17,7 @@ final class CheckoutEventTest extends TestCase
         self::assertSame('upsell_declined', CheckoutEvent::UpsellDeclined->value);
         self::assertSame('order_placed', CheckoutEvent::OrderPlaced->value);
         self::assertSame('order_declined', CheckoutEvent::OrderDeclined->value);
+        self::assertSame('added_shipping_info', CheckoutEvent::AddedShippingInfo->value);
+        self::assertSame('added_payment_info', CheckoutEvent::AddedPaymentInfo->value);
     }
 }

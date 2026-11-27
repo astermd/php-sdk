@@ -11,8 +11,8 @@ use AsterMD\Sdk\Response;
  * Records a session's checkout-funnel events on the `sales` service.
  *
  * Checkout events track a prospect through the final stage of the order flow —
- * landing on the checkout page, being shown and answering post-cart upsell
- * offers, and the eventual order outcome. Each event is tied to a session UUID
+ * landing on the checkout page, submitting shipping and payment details, being
+ * shown and answering post-cart upsell offers, and the eventual order outcome. Each event is tied to a session UUID
  * and carries a {@see CheckoutEvent} value that advances the server-side
  * checkout state machine and attributes the order to the session.
  *
@@ -21,9 +21,11 @@ use AsterMD\Sdk\Response;
  * for the same session. Typical sequence:
  *
  *  1. `create($session, ['order_total' => 99.0, ...])` — prospect reaches checkout.
- *  2. `update($session, CheckoutEvent::UpsellOffered, ['product_id' => ..., 'product_name' => ...])`.
- *  3. `update($session, CheckoutEvent::UpsellAccepted, [...])` *or* `CheckoutEvent::UpsellDeclined`.
- *  4. `update($session, CheckoutEvent::OrderPlaced, [...])` *or* `CheckoutEvent::OrderDeclined`.
+ *  2. `update($session, CheckoutEvent::AddedShippingInfo)` — shipping details submitted.
+ *  3. `update($session, CheckoutEvent::AddedPaymentInfo, ['payment_method' => 'card'])` — payment details submitted.
+ *  4. `update($session, CheckoutEvent::UpsellOffered, ['product_id' => ..., 'product_name' => ...])`.
+ *  5. `update($session, CheckoutEvent::UpsellAccepted, [...])` *or* `CheckoutEvent::UpsellDeclined`.
+ *  6. `update($session, CheckoutEvent::OrderPlaced, [...])` *or* `CheckoutEvent::OrderDeclined`.
  *
  * `payment_method` is one of `apple_pay`, `google_pay`, `card`, or `paypal`. The
  * full request schema (including the optional `upsell` array on create) is in the
@@ -41,6 +43,7 @@ final class CheckoutEvents extends AbstractResource
      *
      * @param string               $session the session UUID to associate the checkout event with
      * @param array<string, mixed> $data    optional checkout fields, forwarded as-is. Known top-level keys:
+     *                                       `product_id` (string ID — the product being checked out),
      *                                       `order_value` (float — value before tax/shipping),
      *                                       `order_total` (float — total including tax/shipping),
      *                                       `payment_method` (string — `apple_pay`|`google_pay`|`card`|`paypal`),
@@ -72,7 +75,8 @@ final class CheckoutEvents extends AbstractResource
      * Call this for every event after the initial `create()`: each upsell offer
      * and its outcome, then the final order result. The SDK sends the chosen
      * `$event` value; the conditional fields it requires depend on the event:
-     * upsell events (`UpsellOffered`/`UpsellAccepted`/`UpsellDeclined`) expect
+     * `AddedPaymentInfo` carries the chosen `payment_method` (`AddedShippingInfo`
+     * needs no extra fields), upsell events (`UpsellOffered`/`UpsellAccepted`/`UpsellDeclined`) expect
      * `product_id` and `product_name`, while order events (`OrderPlaced`/
      * `OrderDeclined`) expect `order_value`, `order_total`, `payment_method`,
      * `currency`, and `provider_order_id`. The SDK forwards `$data` as-is and does
@@ -85,7 +89,8 @@ final class CheckoutEvents extends AbstractResource
      *                                       `product_name` (string — upsell events),
      *                                       `order_value` (float — order events),
      *                                       `order_total` (float — order events),
-     *                                       `payment_method` (string — `apple_pay`|`google_pay`|`card`|`paypal`),
+     *                                       `payment_method` (string — `apple_pay`|`google_pay`|`card`|`paypal`;
+     *                                       `AddedPaymentInfo` and order events),
      *                                       `currency` (string ISO 4217 — order events),
      *                                       `provider_order_id` (list<string> — payment provider order ids),
      *                                       `opportunity_id` (string — optional CRM opportunity id),

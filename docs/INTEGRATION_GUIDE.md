@@ -32,7 +32,8 @@ The SDK is a thin, typed wrapper around the AsterMD public REST API.
 ```
 your app
   └── AsterMDClient
-        ├── ->sessions()         ->intakeSubmissions()    ->carts()           ->coupons()
+        ├── ->sessions()         ->sessionEvents()   ->intakeSubmissions()    ->carts()
+        ├── ->coupons()          ->checkoutEvents()
         ├── ->patients()         ->opportunities()   ->treatments()    ->teleforms()
         ├── ->doctorsNetworks()  ->channels()
         └── catalog: ->products() / ->categories() / ->labTests()
@@ -142,6 +143,25 @@ $session = $client->sessions()->create(
 // ])->data()['session'];
 ```
 
+Then record every page the visitor opens. The latest page view becomes the
+session's `last_page` (returned by `sessions()->view()`), so you can see where a
+visitor who drops off left. Page views do not move the session's funnel step.
+
+```php
+use AsterMD\Sdk\Enum\PageType;
+
+$client->sessionEvents()->pageView($session, PageType::Cart, '/cart', [
+    'title' => 'Your Cart',
+]);
+
+// Product pages: pass the product id.
+$client->sessionEvents()->pageView($session, PageType::Product, '/products/semaglutide', [
+    'url'        => 'https://shop.example.com/products/semaglutide',
+    'referrer'   => $_SERVER['HTTP_REFERER'] ?? '',
+    'product_id' => '6a1c28f05f315cee0e41c301',
+]);
+```
+
 ### Step 2 — Pre-qualifying (identity check, basic questions)
 
 Before recording answers, validate what the prospect typed. These checks are
@@ -214,15 +234,16 @@ $client->intakeSubmissions()->update(
 ```php
 // After pre-qualifying, build the cart from selected products.
 // Each item is {product_id, name, qty}; the event and channel_id are derived server-side.
+// The cart total (major units) and its currency are optional; the currency defaults to USD.
 $client->carts()->create($session, [
     ['product_id' => '6a1c28f05f315cee0e41c301', 'name' => 'Semaglutide', 'qty' => 2],
     ['product_id' => '6a1c28f05f315cee0e41c357', 'name' => 'Tirzepatide', 'qty' => 3],
-]);
+], cartTotal: 1095.0, currency: 'USD');
 
-// Later — user changes their mind (send the full replacement list)
+// Later — user changes their mind (send the full replacement list and the new total)
 $client->carts()->update($session, [
     ['product_id' => '6a1c28f05f315cee0e41c301', 'name' => 'Semaglutide', 'qty' => 1],
-]);
+], cartTotal: 199.0);
 ```
 
 ### Step 4 — Eligibility (handled by your app, not the SDK)
@@ -413,6 +434,21 @@ All methods return `AsterMD\Sdk\Response`.
 | `update(string $session, array $data = []): Response` | PUT    | `/v1/sales/sessions/update/{id}` |
 | `delete(string $session): Response`                   | DELETE | `/v1/sales/sessions/delete/{id}` |
 
+Each session's read-model from `view()` carries `last_page` (`{type, path, product_id}`, the latest page view) and `last_page_at`; both are `null` until the first `sessionEvents()->pageView()`.
+
+### `sessionEvents()`
+
+| Method                                                                                                  | HTTP | Path                                     |
+| ------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------- |
+| `pageView(string $session, PageType $type, string $path, array $page = [], array $meta = []): Response` | POST | `/v1/sales/session-events/create`        |
+| `beginIdentityVerification(string $session, array $meta = []): Response`                                | POST | `/v1/sales/session-events/create`        |
+| `list(array $query = []): Response`                                                                     | GET  | `/v1/sales/session-events/list`          |
+| `view(string $id): Response`                                                                            | GET  | `/v1/sales/session-events/view/{id}`     |
+
+`pageView()` records a `page_view`: `$page` may add `url`, `title`, `referrer`, and `product_id`. `beginIdentityVerification()` records the start of identity verification. `$meta` is stored with the event as sent. `list()` takes `page`, `limit`, `search` (matches the session UUID), `sort_by`, and `sort_order`.
+
+`PageType` enum values: `Home`, `Product`, `Cart`, `Intake`, `Checkout`, `Upsell`, `ThankYou`, `Cms` (terms, privacy, about pages), `Other`.
+
 ### `intakeSubmissions()`
 
 | Method                                                                                                    | HTTP | Path                                             |
@@ -500,10 +536,10 @@ Uploaded bytes are **PHI**. The SDK never writes them to a debug log, even with
 
 | Method                                                       | HTTP | Path                                  |
 | ------------------------------------------------------------ | ---- | ------------------------------------- |
-| `create(string $session, array $items): Response`            | POST | `/v1/sales/carts/create`              |
-| `update(string $session, array $items): Response`            | PUT  | `/v1/sales/carts/update/{session}`    |
+| `create(string $session, array $items, ?float $cartTotal = null, ?string $currency = null): Response` | POST | `/v1/sales/carts/create`              |
+| `update(string $session, array $items, ?float $cartTotal = null, ?string $currency = null): Response` | PUT  | `/v1/sales/carts/update/{session}`    |
 
-`items` is a list of items. Each item: `product_id` (string), `name` (string), `qty` (int) — all required. The journey event and `channel_id` are derived server-side, so the SDK does not send them.
+`items` is a list of items. Each item: `product_id` (string), `name` (string), `qty` (int) — all required. The journey event and `channel_id` are derived server-side, so the SDK does not send them. `cartTotal` (major units) and `currency` (ISO 4217, `USD` when not sent) are sent only when given; the cart in `data()` returns both.
 
 ### `coupons()`
 

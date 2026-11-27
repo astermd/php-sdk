@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.8] - 2026-11-27
+
+### Added
+
+- `sessionEvents()` resource (`/v1/sales/session-events/*`):
+  `pageView()` records a `page_view` for every page the visitor opens,
+  `beginIdentityVerification()` records the start of identity verification, and
+  `list()` / `view()` read the event log back.
+- `PageType` enum for the kind of page viewed: `home`, `product`, `cart`,
+  `intake`, `checkout`, `upsell`, `thank_you`, `cms`, `other`.
+- `CheckoutEvent::AddedShippingInfo` and `CheckoutEvent::AddedPaymentInfo`, sent
+  through `checkoutEvents()->update()` when the visitor submits shipping or
+  payment details (send `payment_method` with the latter).
+  `checkoutEvents()->create()` documents the optional `product_id` field.
+- `carts()->create()` and `carts()->update()` take optional `cartTotal` (major
+  units) and `currency` (ISO 4217; the server uses `USD` when not sent). The cart
+  response returns both.
+- `sessions()->view()` documents `last_page` (`{type, path, product_id}`) and
+  `last_page_at` on each session's read-model.
+
 ## [0.0.7] - 2026-11-24
 
 ### Added

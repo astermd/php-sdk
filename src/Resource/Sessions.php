@@ -16,8 +16,9 @@ use AsterMD\Sdk\Response;
  * session at the very beginning of a visitor's interaction and persist the UUID
  * in your frontend (e.g. localStorage or a cookie) for the duration of their visit.
  *
- * Creating a session triggers an implicit server-side `visit_page` event; no
- * additional event call is needed to record the page view.
+ * Creating a session triggers an implicit server-side `visit_page` event. To
+ * record each page the visitor opens after that, use
+ * {@see \AsterMD\Sdk\Resource\SessionEvents::pageView()}.
  */
 final class Sessions extends AbstractResource
 {
@@ -94,7 +95,11 @@ final class Sessions extends AbstractResource
      * to batch-fetch sessions. The response `data()` is keyed by session UUID; each
      * entry carries an aggregated `data` read-model and an `events` timeline. The
      * read-model includes `affiliate_link_id` and `affiliate_id` (each a string, or
-     * `null` when the session was not created from an affiliate link).
+     * `null` when the session was not created from an affiliate link), plus
+     * `last_page` — the page of the latest page view, as `{type, path, product_id}`
+     * where `type` is a {@see \AsterMD\Sdk\Enum\PageType} value — and
+     * `last_page_at`, its time. Both are `null` until the first
+     * {@see \AsterMD\Sdk\Resource\SessionEvents::pageView()} call.
      *
      * Pass `$tz` (an IANA timezone, e.g. `Asia/Kolkata`) to have the server format
      * all timestamps in that zone; when omitted, timestamps are returned in UTC.
