@@ -111,4 +111,41 @@ final class CartsTest extends TestCase
         self::assertStringContainsString('"items":[]', $raw);
         self::assertStringNotContainsString('"items":{}', $raw);
     }
+
+    public function testCreateSendsCartTotalAndCurrencyWhenGiven(): void
+    {
+        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
+
+        $this->resource->create('sess-uuid', [
+            ['product_id' => 'p1', 'name' => 'Semaglutide', 'qty' => 1],
+        ], 199.0, 'USD');
+
+        self::assertJsonStringEqualsJsonString(
+            '{"session":"sess-uuid","items":[{"product_id":"p1","name":"Semaglutide","qty":1}],"cart_total":199.0,"currency":"USD"}',
+            (string) $this->http->lastRequest()->getBody(),
+        );
+    }
+
+    public function testUpdateSendsCartTotalWithoutCurrency(): void
+    {
+        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
+
+        $this->resource->update('sess-uuid', [
+            ['product_id' => 'p1', 'name' => 'Semaglutide', 'qty' => 3],
+        ], cartTotal: 597.0);
+
+        self::assertJsonStringEqualsJsonString(
+            '{"items":[{"product_id":"p1","name":"Semaglutide","qty":3}],"cart_total":597.0}',
+            (string) $this->http->lastRequest()->getBody(),
+        );
+    }
+
+    public function testEmptyCurrencyIsNotSent(): void
+    {
+        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
+
+        $this->resource->update('sess-uuid', [], currency: '');
+
+        self::assertJsonStringEqualsJsonString('{"items":[]}', (string) $this->http->lastRequest()->getBody());
+    }
 }

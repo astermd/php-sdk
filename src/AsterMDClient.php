@@ -218,6 +218,21 @@ final class AsterMDClient
     }
 
     /**
+     * Returns the SessionEvents resource for recording page views and other browsing events.
+     *
+     * Call `sessionEvents()->pageView()` on every storefront page the visitor opens
+     * so the session records where they are (its `last_page`), and
+     * `beginIdentityVerification()` when they start identity verification. Other
+     * journey events are recorded by the cart, intake, and checkout resources.
+     *
+     * @return \AsterMD\Sdk\Resource\SessionEvents
+     */
+    public function sessionEvents(): \AsterMD\Sdk\Resource\SessionEvents
+    {
+        return new \AsterMD\Sdk\Resource\SessionEvents($this->transport);
+    }
+
+    /**
      * Returns the IntakeSubmissions resource for recording pre-qualifying and intake form submissions.
      *
      * An intake submission captures the step-by-step answers a prospect provides
