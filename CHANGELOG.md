@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.9] - 2026-11-28
+
+### Fixed
+
+- `checkoutEvents()->create()` takes an optional `CheckoutEvent $event`
+  (default `CheckoutVisited`), so `AddedShippingInfo` and `AddedPaymentInfo` are
+  sent to `/checkout-events/create` as the API requires. 0.0.8 always sent
+  `checkout_visited` from `create()` and documented the detail events on
+  `update()`, which answers 404 when the session has no checkout record yet.
+
 ## [0.0.8] - 2026-11-27
 
 ### Added

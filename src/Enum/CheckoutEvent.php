@@ -19,7 +19,8 @@ namespace AsterMD\Sdk\Enum;
  *    so you never pass this case explicitly.
  *  - **Details** — as the prospect fills in the checkout form, emit
  *    `AddedShippingInfo` when they submit their shipping details and
- *    `AddedPaymentInfo` when they submit their payment details, via `update()`.
+ *    `AddedPaymentInfo` when they submit their payment details, via `create()`
+ *    (`update()` answers 404 when the session has no checkout record yet).
  *    `AddedPaymentInfo` carries the chosen `payment_method`.
  *  - **Upsell** — as post-cart upsell offers are shown and answered, emit
  *    `UpsellOffered`, then `UpsellAccepted` or `UpsellDeclined`, via `update()`.
@@ -33,10 +34,10 @@ enum CheckoutEvent: string
     /** Prospect reached the checkout page. Recorded via `CheckoutEvents::create()` (set automatically by the SDK). */
     case CheckoutVisited = 'checkout_visited';
 
-    /** The prospect submitted their shipping details at checkout. Pass to `CheckoutEvents::update()`. */
+    /** The prospect submitted their shipping details at checkout. Pass to `CheckoutEvents::create()`. */
     case AddedShippingInfo = 'added_shipping_info';
 
-    /** The prospect submitted their payment details at checkout. Pass to `CheckoutEvents::update()` with `payment_method`. */
+    /** The prospect submitted their payment details at checkout. Pass to `CheckoutEvents::create()` with `payment_method`. */
     case AddedPaymentInfo = 'added_payment_info';
 
     /** An upsell offer was shown to the prospect. Pass to `CheckoutEvents::update()` with `product_id` and `product_name`. */
