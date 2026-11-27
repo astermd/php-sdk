@@ -16,13 +16,16 @@ use AsterMD\Sdk\Response;
  * and carries a {@see CheckoutEvent} value that advances the server-side
  * checkout state machine and attributes the order to the session.
  *
- * `create()` opens the funnel for a session with the `checkout_visited` event
- * (the SDK sets that event for you); `update()` records every subsequent event
- * for the same session. Typical sequence:
+ * `create()` records the events that open or fill in the checkout record:
+ * `checkout_visited` (the default), `added_shipping_info`, and
+ * `added_payment_info`. `update()` records every later event for the same
+ * session and answers 404 when no checkout record exists yet, so the
+ * shipping and payment detail events always go through `create()`. Typical
+ * sequence:
  *
  *  1. `create($session, ['order_total' => 99.0, ...])` — prospect reaches checkout.
- *  2. `update($session, CheckoutEvent::AddedShippingInfo)` — shipping details submitted.
- *  3. `update($session, CheckoutEvent::AddedPaymentInfo, ['payment_method' => 'card'])` — payment details submitted.
+ *  2. `create($session, ['order_total' => 99.0], CheckoutEvent::AddedShippingInfo)` — shipping details submitted.
+ *  3. `create($session, ['payment_method' => 'card'], CheckoutEvent::AddedPaymentInfo)` — payment details submitted.
  *  4. `update($session, CheckoutEvent::UpsellOffered, ['product_id' => ..., 'product_name' => ...])`.
  *  5. `update($session, CheckoutEvent::UpsellAccepted, [...])` *or* `CheckoutEvent::UpsellDeclined`.
  *  6. `update($session, CheckoutEvent::OrderPlaced, [...])` *or* `CheckoutEvent::OrderDeclined`.
@@ -34,23 +37,31 @@ use AsterMD\Sdk\Response;
 final class CheckoutEvents extends AbstractResource
 {
     /**
-     * Opens the checkout funnel for a session by recording the `checkout_visited` event.
+     * Records a checkout event that opens or fills in the session's checkout record.
      *
-     * Call this once when the prospect reaches the checkout page. The SDK sets
-     * `event: checkout_visited` and the session, and defaults `currency` to `USD`
-     * when you do not supply one. All other fields are optional and forwarded as
-     * given. Inspect `$response->data()` for the created checkout-event record.
+     * Call it with the default `checkout_visited` once when the prospect reaches
+     * the checkout page, then with `AddedShippingInfo` when they submit their
+     * shipping details and `AddedPaymentInfo` (with `payment_method`) when they
+     * submit their payment details. These two must use `create()`: `update()`
+     * answers 404 for a session that has no checkout record yet. The SDK sets
+     * `event` and the session, and defaults `currency` to `USD` when you do not
+     * supply one; `$event` wins over an `event` key in `$data`. All other fields
+     * are optional and forwarded as given. Inspect `$response->data()` for the
+     * created checkout-event record.
      *
      * @param string               $session the session UUID to associate the checkout event with
      * @param array<string, mixed> $data    optional checkout fields, forwarded as-is. Known top-level keys:
      *                                       `product_id` (string ID — the product being checked out),
      *                                       `order_value` (float — value before tax/shipping),
      *                                       `order_total` (float — total including tax/shipping),
-     *                                       `payment_method` (string — `apple_pay`|`google_pay`|`card`|`paypal`),
+     *                                       `payment_method` (string — `apple_pay`|`google_pay`|`card`|`paypal`;
+     *                                       send it with `AddedPaymentInfo`),
      *                                       `discount_code` (string),
      *                                       `currency` (string ISO 4217; defaults to `USD` when omitted/empty),
      *                                       `upsell` (array of objects). Full schema in the
      *                                       API reference under `/checkout-events/create`.
+     * @param CheckoutEvent        $event   the event to record: `CheckoutVisited` (the default),
+     *                                       `AddedShippingInfo`, or `AddedPaymentInfo`
      *
      * @return Response the created checkout-event envelope; `data()` contains the new record
      *
@@ -58,9 +69,12 @@ final class CheckoutEvents extends AbstractResource
      * @throws \AsterMD\Sdk\Exception\ApiException        on a non-2xx response from the server
      * @throws \AsterMD\Sdk\Exception\TransportException  on a network-level failure
      */
-    public function create(string $session, array $data = []): Response
-    {
-        $body = ['session' => $session, 'event' => CheckoutEvent::CheckoutVisited->value] + $data;
+    public function create(
+        string $session,
+        array $data = [],
+        CheckoutEvent $event = CheckoutEvent::CheckoutVisited,
+    ): Response {
+        $body = ['session' => $session, 'event' => $event->value] + $data;
 
         if (!isset($body['currency']) || $body['currency'] === '') {
             $body['currency'] = 'USD';
@@ -73,24 +87,26 @@ final class CheckoutEvents extends AbstractResource
      * Records a subsequent checkout-funnel event for an existing session.
      *
      * Call this for every event after the initial `create()`: each upsell offer
-     * and its outcome, then the final order result. The SDK sends the chosen
-     * `$event` value; the conditional fields it requires depend on the event:
-     * `AddedPaymentInfo` carries the chosen `payment_method` (`AddedShippingInfo`
-     * needs no extra fields), upsell events (`UpsellOffered`/`UpsellAccepted`/`UpsellDeclined`) expect
+     * and its outcome, then the final order result. The shipping and payment
+     * detail events go through `create()` instead, because this endpoint
+     * answers 404 for a session with no checkout record yet. The SDK sends the
+     * chosen `$event` value; the conditional fields it requires depend on the
+     * event: upsell events (`UpsellOffered`/`UpsellAccepted`/`UpsellDeclined`) expect
      * `product_id` and `product_name`, while order events (`OrderPlaced`/
      * `OrderDeclined`) expect `order_value`, `order_total`, `payment_method`,
      * `currency`, and `provider_order_id`. The SDK forwards `$data` as-is and does
      * not validate which fields a given event needs — the server enforces that.
      *
      * @param string               $session the session UUID whose checkout funnel to advance (sent as the path id)
-     * @param CheckoutEvent         $event   the funnel event to record (any value except `CheckoutVisited`, which `create()` owns)
+     * @param CheckoutEvent         $event   the funnel event to record (any value except those `create()` owns:
+     *                                       `CheckoutVisited`, `AddedShippingInfo`, `AddedPaymentInfo`)
      * @param array<string, mixed> $data    event fields, forwarded as-is. Known top-level keys:
      *                                       `product_id` (string ID — upsell events),
      *                                       `product_name` (string — upsell events),
      *                                       `order_value` (float — order events),
      *                                       `order_total` (float — order events),
      *                                       `payment_method` (string — `apple_pay`|`google_pay`|`card`|`paypal`;
-     *                                       `AddedPaymentInfo` and order events),
+     *                                       order events),
      *                                       `currency` (string ISO 4217 — order events),
      *                                       `provider_order_id` (list<string> — payment provider order ids),
      *                                       `opportunity_id` (string — optional CRM opportunity id),

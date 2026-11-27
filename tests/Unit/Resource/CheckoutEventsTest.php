@@ -133,25 +133,49 @@ final class CheckoutEventsTest extends TestCase
         );
     }
 
-    public function testUpdateRecordsShippingAndPaymentDetailEvents(): void
+    public function testCreateRecordsShippingAndPaymentDetailEvents(): void
     {
-        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
-        $this->http->enqueue(200, '{"success":true,"message":"ok","data":{},"meta":{}}');
+        $this->http->enqueue(201, '{"success":true,"message":"ok","data":{},"meta":{}}');
+        $this->http->enqueue(201, '{"success":true,"message":"ok","data":{},"meta":{}}');
 
-        $this->resource->update('sess-uuid', CheckoutEvent::AddedShippingInfo);
+        $this->resource->create('sess-uuid', [
+            'product_id' => '64b2f0c7e3a1d2b3c4e5f6b1',
+            'order_total' => 129.99,
+        ], CheckoutEvent::AddedShippingInfo);
 
         $req = $this->http->lastRequest();
-        self::assertSame('PUT', $req->getMethod());
+        self::assertSame('POST', $req->getMethod());
         self::assertSame(
-            'https://api.astermd.com/v1/sales/checkout-events/update/sess-uuid',
+            'https://api.astermd.com/v1/sales/checkout-events/create',
             (string) $req->getUri(),
         );
-        self::assertJsonStringEqualsJsonString('{"event":"added_shipping_info"}', (string) $req->getBody());
+        self::assertJsonStringEqualsJsonString(
+            '{"session":"sess-uuid","event":"added_shipping_info","product_id":"64b2f0c7e3a1d2b3c4e5f6b1","order_total":129.99,"currency":"USD"}',
+            (string) $req->getBody(),
+        );
 
-        $this->resource->update('sess-uuid', CheckoutEvent::AddedPaymentInfo, ['payment_method' => 'card']);
+        $this->resource->create('sess-uuid', [
+            'product_id' => '64b2f0c7e3a1d2b3c4e5f6b1',
+            'order_total' => 129.99,
+            'payment_method' => 'card',
+        ], CheckoutEvent::AddedPaymentInfo);
+
+        $req = $this->http->lastRequest();
+        self::assertSame('POST', $req->getMethod());
+        self::assertJsonStringEqualsJsonString(
+            '{"session":"sess-uuid","event":"added_payment_info","product_id":"64b2f0c7e3a1d2b3c4e5f6b1","order_total":129.99,"payment_method":"card","currency":"USD"}',
+            (string) $req->getBody(),
+        );
+    }
+
+    public function testCreateEventArgumentWinsOverEventInData(): void
+    {
+        $this->http->enqueue(201, '{"success":true,"message":"ok","data":{},"meta":{}}');
+
+        $this->resource->create('sess-uuid', ['event' => 'order_placed'], CheckoutEvent::AddedShippingInfo);
 
         self::assertJsonStringEqualsJsonString(
-            '{"event":"added_payment_info","payment_method":"card"}',
+            '{"session":"sess-uuid","event":"added_shipping_info","currency":"USD"}',
             (string) $this->http->lastRequest()->getBody(),
         );
     }
